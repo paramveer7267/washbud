@@ -7,11 +7,10 @@ import envConfig from './config/env.config';
 import { DatabaseConfig } from './config/database.config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { TeamModule } from './team/team.module';
+import { OrdersModule } from './orders/orders.module';
+
 import mongoose from 'mongoose';
-import { PaymentsModule } from './payments/payments.module';
-import { ClientsModule } from './clients/clients.module';
-import { ProjectsModule } from './projects/projects.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,10 +20,7 @@ import { ProjectsModule } from './projects/projects.module';
     DatabaseConfig,
     UserModule,
     AuthModule,
-    TeamModule,
-    PaymentsModule,
-    ClientsModule,
-    ProjectsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

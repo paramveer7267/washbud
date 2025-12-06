@@ -12,6 +12,12 @@ export class User extends Document {
   @Prop({ required: true })
   password: string;
 
+  @Prop({ unique: true })
+  contactNumber: string;
+
+  @Prop()
+  address: string;
+
   declare _id: Types.ObjectId;
 }
 
