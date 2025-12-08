@@ -8,11 +8,20 @@ import { DatabaseConfig } from './config/database.config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { AdminModule } from './admin/admin.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 import mongoose from 'mongoose';
 
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true, // auto-generate schema
+      sortSchema: true,
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [envConfig],
@@ -21,6 +30,8 @@ import mongoose from 'mongoose';
     UserModule,
     AuthModule,
     OrdersModule,
+    ReviewsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
