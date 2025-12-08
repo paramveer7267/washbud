@@ -1,35 +1,126 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useRef, useEffect } from "react";
+import { Animated, Pressable, Text, Platform } from "react-native";
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/theme";
+import { useIsFocused } from "@react-navigation/native";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+const CustomTabButton = ({ onPress, name, label, size = 22 }) => {
+  const isFocused = useIsFocused();
+  const scale = useRef(new Animated.Value(isFocused ? 1.08 : 1)).current;
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: isFocused ? 1.08 : 1,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 90,
+    }).start();
+  }, [isFocused]);
 
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 1.12,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 100,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: isFocused ? 1.08 : 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 100,
+    }).start();
+  };
+
+  const color = isFocused ? COLORS.primary : COLORS.grey;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      android_ripple={{ color: "#ffffff15", borderless: true }}
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: Platform.OS === "android" ? 6 : 8,
+      }}
+    >
+      <Animated.View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          transform: [{ scale }],
+        }}
+      >
+        <Ionicons name={name} size={size} color={color} />
+        <Text
+          style={{
+            color,
+            fontSize: 11,
+            marginTop: 2,
+            fontWeight: isFocused ? "600" : "400",
+          }}
+        >
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+};
+
+const TabLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "black",
+          borderTopWidth: 0,
+          position: "absolute",
+          elevation: 0,
+          height: 56,
+          paddingBottom: 6,
+        },
+      }}
+    >
+    
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarButton: (props) => (
+            <CustomTabButton
+              {...props}
+              name="home-outline"
+              label="Home"
+            />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="orders"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarButton: (props) => (
+            <CustomTabButton {...props} name="layers-outline" label="Orders" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarButton: (props) => (
+            <CustomTabButton {...props} name="person-outline" label="Account" />
+          ),
         }}
       />
     </Tabs>
   );
-}
+};
+
+export default TabLayout;
