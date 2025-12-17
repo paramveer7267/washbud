@@ -26,7 +26,7 @@ export default function Index() {
 
   // while redirecting, keep black background to avoid flash
   if (user) {
-    return <View className="flex-1 bg-black" />;
+    return <View className="flex-1 bg-white" />;
   }
 
   return <AuthScreen />;

@@ -1,24 +1,28 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
 import Toast from "react-native-toast-message";
-import { setBackgroundColorAsync } from "expo-system-ui";
-import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 const queryClient = new QueryClient();
+
 export default function RootLayout() {
-  useEffect(() => {
-    setBackgroundColorAsync("black");
-  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-          <StatusBar barStyle="light-content" backgroundColor="black" />
-          <Stack screenOptions={{ headerShown: false }} />
-          <Toast />
-        </SafeAreaView>
+        <StatusBar backgroundColor="white" barStyle="dark-content" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name="(modals)"
+            options={{
+              presentation: "modal",
+              animation: "slide_from_bottom",
+              gestureEnabled: true,
+            }}
+          />
+        </Stack>
+        <Toast />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

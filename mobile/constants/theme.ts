@@ -1,9 +1,10 @@
 export const COLORS = {
-  primary: "#1D70FF",
-  secondary: "#2DD4BF",
-  background: "#000000",
-  surface: "#1A1A1A",
-  surfaceLight: "#2A2A2A",
+  background: "#EAF6FD",
+  primary: "#1E88E5",
+  primaryDark: "#1565C0",
+  inputBg: "#FFFFFF",
+  text: "#0F172A",
+  muted: "#64748B",
   white: "#FFFFFF",
-  grey: "#9CA3AF",
+  grey: "#6B7280", // Tailwind gray-500
 } as const;

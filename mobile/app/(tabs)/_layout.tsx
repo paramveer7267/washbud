@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/theme";
 import { useIsFocused } from "@react-navigation/native";
 
-const CustomTabButton = ({ onPress, name, label, size = 22 }) => {
+const CustomTabButton = ({ onPress, name, label, size = 24 }) => {
   const isFocused = useIsFocused();
   const scale = useRef(new Animated.Value(isFocused ? 1.08 : 1)).current;
 
@@ -36,7 +36,7 @@ const CustomTabButton = ({ onPress, name, label, size = 22 }) => {
     }).start();
   };
 
-  const color = isFocused ? COLORS.primary : COLORS.grey;
+  const color = isFocused ? COLORS.primaryDark : COLORS.grey;
 
   return (
     <Pressable
@@ -81,12 +81,12 @@ const TabLayout = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: "black",
+          backgroundColor: "white",
           borderTopWidth: 0,
           position: "absolute",
           elevation: 0,
-          height: 56,
-          paddingBottom: 6,
+          height: 90,
+          paddingBottom: 20,
         },
       }}
     >
@@ -115,7 +115,7 @@ const TabLayout = () => {
         name="profile"
         options={{
           tabBarButton: (props) => (
-            <CustomTabButton {...props} name="person-outline" label="Account" />
+            <CustomTabButton {...props} name="person-outline" label="Profile" />
           ),
         }}
       />
