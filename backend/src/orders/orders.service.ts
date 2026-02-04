@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import { Order, OrderDocument } from './schemas/orders.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ReviewDocument } from 'src/reviews/schemas/reviews.schema';
+import { ReviewDocument } from '../reviews/schemas/reviews.schema';
 
 @Injectable()
 export class OrdersService {
@@ -19,7 +19,6 @@ export class OrdersService {
   // CREATE ORDER
   // --------------------
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
-    
     const orderId: string = `WB-${String(nanoid(6)).toUpperCase()}`;
 
     const newOrder = new this.orderModel({

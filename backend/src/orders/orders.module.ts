@@ -5,7 +5,7 @@ import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { Order, OrderSchema } from './schemas/orders.schema';
 import { OrdersResolver } from './orders.resolver';
-import { ReviewSchema } from 'src/reviews/schemas/reviews.schema';
+import { ReviewSchema } from '../reviews/schemas/reviews.schema';
 
 @Module({
   imports: [
