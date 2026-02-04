@@ -6,18 +6,22 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('orders')
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  createOrder(@CurrentUser() user, @Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto, user.id);
   }
 
   @Get()
@@ -25,9 +29,13 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
+  @Get('my')
+  findMyOrders(@CurrentUser() user) {
+    return this.ordersService.findByUser(user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
-    // <-- keep as string
     return this.ordersService.findOne(id);
   }
 

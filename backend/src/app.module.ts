@@ -21,6 +21,7 @@ import mongoose from 'mongoose';
       driver: ApolloDriver,
       autoSchemaFile: true, // auto-generate schema
       sortSchema: true,
+      path: '/api/v1/graphql',
     }),
     ConfigModule.forRoot({
       isGlobal: true,

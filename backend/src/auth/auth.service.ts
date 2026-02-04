@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from '../user/user.schema';
+import { User } from '../user/schemas/user.schema';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
@@ -77,12 +77,14 @@ export class AuthService {
   // Login
   async login(emailorusername: string, password: string, res: Response) {
     // ✅ DTO already validates input presence
-    const user = await this.userModel.findOne({
-      $or: [
-        { email: emailorusername.toLowerCase() },
-        { username: emailorusername },
-      ],
-    });
+    const user = await this.userModel
+      .findOne({
+        $or: [
+          { email: emailorusername.toLowerCase() },
+          { username: emailorusername },
+        ],
+      })
+      .select('+password'); // Include password for comparison
 
     if (!user) throw new NotFoundException('Invalid credentials');
 
@@ -94,11 +96,7 @@ export class AuthService {
     return res.status(200).json({
       success: true,
       message: 'Logged in successfully',
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      user: user.toObject(),
       token,
     });
   }

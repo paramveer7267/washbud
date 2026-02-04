@@ -5,6 +5,9 @@ export class OrderType {
   @Field(() => ID)
   _id: string;
 
+  @Field(() => ID)
+  userId: string;
+
   @Field()
   customerName: string;
 

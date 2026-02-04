@@ -1,10 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { User } from 'src/user/schemas/user.schema';
 
 export type OrderDocument = Order & Document;
 
 @Schema({ timestamps: true })
 export class Order {
+  @Prop({ required: true, index: true, unique: true })
+  orderId: string;
+
+  @Prop({ type: Types.ObjectId, ref: User.name, required: true })
+  user: Types.ObjectId;
+
   @Prop({ required: true })
   weightCategory: string; // e.g., light(0-7kg) / medium(8-14kg) / heavy(15-25kg+)
 
@@ -43,4 +50,3 @@ export class Order {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
-
