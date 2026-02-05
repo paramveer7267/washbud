@@ -27,6 +27,7 @@ export class AuthService {
       httpOnly: true,
       sameSite: 'none',
       secure: isProduction,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
     });
 
     return token;
@@ -40,7 +41,6 @@ export class AuthService {
     password: string,
     res: Response,
   ) {
-    // ✅ Keep only business logic validation
     const existingUser = await this.userModel.findOne({
       $or: [{ username }, { email: email.toLowerCase() }],
     });
@@ -48,10 +48,8 @@ export class AuthService {
       throw new BadRequestException('User already exists');
     }
 
-    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Create user
     const user = new this.userModel({
       name,
       username,
@@ -59,7 +57,6 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    // ✅ Generate token and set cookie
     const token = this.generateTokenAndSetCookie(user._id.toString(), res);
 
     await user.save();
@@ -74,7 +71,6 @@ export class AuthService {
 
   // Login
   async login(emailorusername: string, password: string, res: Response) {
-    // ✅ DTO already validates input presence
     const user = await this.userModel
       .findOne({
         $or: [
