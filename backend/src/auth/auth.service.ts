@@ -34,6 +34,7 @@ export class AuthService {
 
   // Signup
   async signup(
+    name: string,
     username: string,
     email: string,
     password: string,
@@ -52,6 +53,7 @@ export class AuthService {
 
     // ✅ Create user
     const user = new this.userModel({
+      name,
       username,
       email: email.toLowerCase(),
       password: hashedPassword,
@@ -65,11 +67,7 @@ export class AuthService {
     return res.status(201).json({
       success: true,
       message: 'User created successfully',
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      user: user.toObject(),
       token,
     });
   }
