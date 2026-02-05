@@ -25,7 +25,7 @@ export class AuthService {
 
     res.cookie('jwt', token, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       secure: isProduction,
     });
 
