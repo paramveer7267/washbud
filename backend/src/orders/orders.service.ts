@@ -45,9 +45,9 @@ export class OrdersService {
   // --------------------
   // GET USER ORDERS
   // --------------------
-  async findByUser(userId: string): Promise<Order[]> {
+  async findByUser(id: string): Promise<Order[]> {
     return this.orderModel
-      .find({ user: userId })
+      .find({ user: id })
       .populate('reviews')
       .sort({ createdAt: -1 })
       .exec();
