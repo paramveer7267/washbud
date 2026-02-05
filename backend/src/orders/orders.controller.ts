@@ -29,12 +29,13 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
-  @Get(':id')
+
+  @Get('user/:id')
   findMyOrders(@Param('id') id: string) {
     return this.ordersService.findByUser(id);
   }
 
-  @Get(':id')
+  @Get('order/:id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
   }
