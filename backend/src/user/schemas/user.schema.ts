@@ -15,7 +15,7 @@ export class User extends Document {
   @Prop({ required: true, select: false })
   password: string;
 
-  @Prop({ unique: true, sparse: true, type: String })
+  @Prop({ unique: true, sparse: true })
   contactNumber: string;
 
   @Prop()
