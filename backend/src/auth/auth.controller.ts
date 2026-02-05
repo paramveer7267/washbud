@@ -20,8 +20,8 @@ export class AuthController {
 
   @Post('signup')
   signup(@Body() signupDto: SignupDto, @Res() res: Response) {
-    const { username, email, password, name } = signupDto;
-    return this.authService.signup(username, email, password, name, res);
+    const { name, username, email, password } = signupDto;
+    return this.authService.signup(name, username, email, password, res);
   }
 
   @Post('login')
