@@ -7,25 +7,26 @@ import api from "@/utils/axiosInstance";
 // TYPES
 // --------------------
 export interface User {
-  id: string;
+  _id: string;
   username: string;
   email: string;
   image?: string;
+  name?: string;
+  contactNumber?: string;
+  address: string[];
+  currentAddress?: string;
 }
 
 export interface AuthCredentials {
-  email: string;
+  emailorusername: string;
   password: string;
 }
 
-export interface SignupCredentials extends AuthCredentials {
+export interface SignupCredentials {
   username: string;
-}
-
-interface UpdateInfoPayload {
-  avatar: string;
-  username: string;
+  name: string;
   email: string;
+  password: string;
 }
 
 export interface AuthStore {
@@ -34,12 +35,17 @@ export interface AuthStore {
   isLoggingIn: boolean;
   isCheckingAuth: boolean;
   isLoggingOut: boolean;
+  token: string | null;
 
   signup: (credentials: SignupCredentials) => Promise<void>;
   login: (credentials: AuthCredentials) => Promise<void>;
   logout: () => Promise<void>;
-  updateInfo: (payload: UpdateInfoPayload) => Promise<void>;
   authCheck: () => Promise<void>;
+  setUser: (user: User) => void;
+
+  // ✅ ADDRESS ACTIONS
+  addAddress: (address: string) => void;
+  setCurrentAddress: (address: string) => void;
 }
 
 // --------------------
@@ -51,7 +57,13 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
   isLoggingIn: false,
   isCheckingAuth: true,
   isLoggingOut: false,
+  token: null,
 
+  setUser: (user) => set({ user }),
+
+  // --------------------
+  // SIGNUP
+  // --------------------
   signup: async (credentials) => {
     set({ isSigningUp: true });
     try {
@@ -59,7 +71,15 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
         withCredentials: true,
       });
 
-      set({ user: res.data.user, isSigningUp: false });
+      set({
+        user: {
+          ...res.data.user,
+          address: res.data.user.address || [],
+          currentAddress: res.data.user.currentAddress || undefined,
+        },
+        token: res.data.token,
+        isSigningUp: false,
+      });
 
       Toast.show({
         type: "success",
@@ -76,6 +96,9 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
     }
   },
 
+  // --------------------
+  // LOGIN
+  // --------------------
   login: async (credentials) => {
     set({ isLoggingIn: true });
     try {
@@ -83,13 +106,21 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
         withCredentials: true,
       });
 
-      set({ user: res.data.user, isLoggingIn: false });
-
+      set({
+        user: {
+          ...res.data.user,
+          address: res.data.user.address || [],
+          currentAddress: res.data.user.currentAddress || undefined,
+        },
+        token: res.data.token,
+        isLoggingIn: false,
+      });
       Toast.show({
         type: "success",
         text1: "Logged in successfully",
+        position: "top",
+        topOffset: 60,
       });
-
       router.replace("/(tabs)/home");
     } catch (error: any) {
       Toast.show({
@@ -100,22 +131,24 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
     }
   },
 
+  // --------------------
+  // LOGOUT
+  // --------------------
   logout: async () => {
     set({ isLoggingOut: true });
     try {
       await api.post("/auth/logout");
-
-      set({ user: null, isLoggingOut: false });
-
+      set({ user: null, token: null, isLoggingOut: false });
       Toast.show({
         type: "success",
         text1: "Logged out successfully",
+        position: "top",
+        topOffset: 60,
       });
-
-      router.replace("/(auth)/login");
+      router.dismissAll();
+      router.replace("/(auth)");
     } catch (error: any) {
       set({ user: null, isLoggingOut: false });
-
       Toast.show({
         type: "error",
         text1: error.response?.data?.message || "Logout failed",
@@ -123,48 +156,69 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
     }
   },
 
-  updateInfo: async ({ avatar, username, email }) => {
+  // --------------------
+  // ADD ADDRESS
+  // --------------------
+  addAddress: (address: string) => {
+    set((state) => {
+      if (!state.user) return state;
+
+      // avoid duplicates
+      if (state.user.address.includes(address)) return state;
+
+      return {
+        user: {
+          ...state.user,
+          address: [...state.user.address, address],
+        },
+      };
+    });
     Toast.show({
-      type: "info",
-      text1: "Updating profile...",
+      type: "success",
+      text1: "Address added successfully",
+      position: "top",
+      topOffset: 60,
     });
 
-    try {
-      await api.post("/user/updateInfo", {
-        avatar,
-        username,
-        email,
-      });
-
-      set((state) => ({
-        user: state.user
-          ? { ...state.user, image: avatar, username, email }
-          : null,
-      }));
-
-      Toast.show({
-        type: "success",
-        text1: "Profile updated successfully",
-      });
-    } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: error.response?.data?.message || "Failed to update profile",
-      });
-    }
+    // 🔗 optional backend sync
+    // api.post("/user/addAddress", { address });
   },
 
+  // --------------------
+  // SET CURRENT ADDRESS
+  // --------------------
+  setCurrentAddress: (address: string) => {
+    set((state) => ({
+      user: state.user ? { ...state.user, currentAddress: address } : null,
+    }));
+
+    Toast.show({
+      type: "success",
+      text1: "Current address updated",
+    });
+
+    // 🔗 optional backend sync
+    // api.post("/user/setCurrentAddress", { address });
+  },
+  // --------------------
+  // AUTH CHECK
+  // --------------------
   authCheck: async () => {
     set({ isCheckingAuth: true });
-
     try {
-      const res = await api.get("/auth/authCheck");
+      const res = await api.get("/auth/authCheck", {
+        withCredentials: true,
+      });
 
       set({
-        user: res.data.user,
+        user: {
+          ...res.data.user,
+          address: res.data.user.address || [],
+          currentAddress: res.data.user.currentAddress || undefined,
+        },
         isCheckingAuth: false,
       });
-    } catch {
+    } catch (error: any) {
       set({ user: null, isCheckingAuth: false });
     }
   },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,71 +9,56 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { COLORS } from "@/constants/theme";
+import { useAuthUserStore } from "@/store/authUser";
+import { useGetUserOrders } from "@/hooks/useGetUserOrders";
+
 /* ---------- Order Type ---------- */
 type Order = {
-  weightCategory: string;
-  id: string;
+  _id: string;
+  orderId: string;
   customerName: string;
   service: string;
+  weightCategory: string;
   pickup: string;
   dropoff: string;
-  paymentMethod: "cash" | "card" | "upi" | "online" | "cod";
-  orderStatus?: "pending" | "processing" | "ready" | "delivered" | "cancelled";
+  paymentMethod: string;
+  orderStatus?: string;
   specialItems?: string;
   orderItem?: string[];
-  reviews?: string[];
 };
-/* ---------- Dummy Orders ---------- */
-const orders: Order[] = [
-  {
-    id: "1",
-    weightCategory: "5-10kg",
-    customerName: "Priya Verma",
-    service: "Standard Delivery",
-    pickup: "Indiranagar, Bengaluru",
-    dropoff: "Whitefield, Bengaluru",
-    paymentMethod: "card",
-    orderStatus: "processing",
-    specialItems: "Handle with care",
-    orderItem: ["Laptop", "Charger"],
-    reviews: ["64f1a9c1a1b2c3d4e5f607a2", "64f1a9c1a1b2c3d4e5f607a3"],
-  },
-  {
-    id: "2",
-    weightCategory: "0-5kg",
-    customerName: "Amit Sharma",
-    service: "Express Delivery",
-    pickup: "Sector 18, Noida",
-    dropoff: "Connaught Place, Delhi",
-    paymentMethod: "upi",
-    orderStatus: "pending",
-    orderItem: ["Documents"],
-  },
-];
 
 /* ---------- Status Config ---------- */
 const STATUS = {
-  pending: { label: "Pending", color: "#F59E0B" },
-  processing: { label: "Processing", color: "#3B82F6" },
-  ready: { label: "Ready", color: "#10B981" },
+  pending: { label: "Pickup Pending", color: "#F59E0B" },
+  processing: { label: "Washing", color: "#3B82F6" },
+  ready: { label: "Ready for Delivery", color: "#10B981" },
   delivered: { label: "Delivered", color: "#22C55E" },
   cancelled: { label: "Cancelled", color: "#EF4444" },
 };
 
+type StatusKey = keyof typeof STATUS | "all";
+
 /* ---------- Card ---------- */
 const OrderCard = ({ order }: { order: Order }) => {
-  const status = STATUS[order.orderStatus ?? "pending"];
+  const status =
+    STATUS[order.orderStatus as keyof typeof STATUS] ?? STATUS.pending;
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.card}
-      onPress={() => router.push(`/order/${order.id}`)}
+      onPress={() => router.push(`/order/${order._id}`)}
     >
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.name}>{order.customerName}</Text>
+
+          <View style={styles.orderIdRow}>
+            <Text style={styles.orderIdTag}>Order ID:</Text>
+            <Text style={styles.orderId}>{order.orderId}</Text>
+          </View>
+
           <Text style={styles.service}>{order.service}</Text>
         </View>
 
@@ -103,15 +88,13 @@ const OrderCard = ({ order }: { order: Order }) => {
         />
       </View>
 
-      {/* Items */}
       {order.orderItem?.length ? (
         <View style={styles.items}>
-          <Text style={styles.itemsTitle}>Items</Text>
+          <Text style={styles.itemsTitle}>Garments</Text>
           <Text style={styles.itemsText}>{order.orderItem.join(", ")}</Text>
         </View>
       ) : null}
 
-      {/* Special Note */}
       {order.specialItems ? (
         <View style={styles.note}>
           <Ionicons name="alert-circle-outline" size={16} color="#F97316" />
@@ -132,50 +115,139 @@ const InfoChip = ({ icon, label }: { icon: any; label: string }) => (
 
 /* ---------- Screen ---------- */
 export default function Orders() {
+  const { user } = useAuthUserStore();
+  const { data, isLoading } = useGetUserOrders(user?._id);
+  const [selectedStatus, setSelectedStatus] = useState<StatusKey>("all");
+
+  const filteredOrders = useMemo<Order[]>(() => {
+    const orders = data ?? [];
+
+    if (selectedStatus === "all") return orders;
+
+    return orders.filter(
+      (order: Order) => order.orderStatus === selectedStatus,
+    );
+  }, [data, selectedStatus]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Orders</Text>
+      <Text style={styles.title}>My Laundry Orders</Text>
+
+      {/* ---------- FILTER TABS ---------- */}
+      <View style={styles.filterRow}>
+        {(
+          [
+            "all",
+            "pending",
+            "processing",
+            "ready",
+            "delivered",
+            "cancelled",
+          ] as StatusKey[]
+        ).map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.filterChip,
+              selectedStatus === status && styles.filterChipActive,
+            ]}
+            onPress={() => setSelectedStatus(status)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                selectedStatus === status && styles.filterTextActive,
+              ]}
+            >
+              {status === "all" ? "All" : STATUS[status].label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <TouchableOpacity
-        style={{
-          backgroundColor: COLORS.primary,
-          paddingVertical: 10,
-          borderRadius: 8,
-          alignItems: "center",
-          marginHorizontal: 80,
-          marginBottom: 16,
-        }}
-        onPress={() => router.push("/order/create")}
+        style={styles.createBtn}
+        onPress={() => router.push("../order/create")}
       >
-        <Text style={{ color: "white", fontWeight: "600" }}>
-          Create New Order
-        </Text>
+        <Text style={styles.createBtnText}>Create New Laundry Order</Text>
       </TouchableOpacity>
-      <FlatList
-        data={orders}
-        keyExtractor={(_, i) => i.toString()}
-        renderItem={({ item }) => <OrderCard order={item} />}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}
-      />
+
+      {!isLoading && filteredOrders.length === 0 ? (
+        <View style={{ alignItems: "center", marginTop: 40 }}>
+          <Text style={{ color: "#6B7280", fontSize: 14 }}>
+            No orders found
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredOrders}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => <OrderCard order={item} />}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }
 
-/* ---------- Styles ---------- */
+/* ---------- Styles (ONLY ADDITIONS) ---------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 20,
     marginBottom: 90,
-    marginTop: 40,
+    marginTop: 50,
   },
 
   title: {
     fontSize: 22,
     fontWeight: "600",
     marginVertical: 12,
-    color: COLORS.primaryDark,
+    color: "#000",
+  },
+
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 12,
+  },
+
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#E5E7EB",
+  },
+
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+  },
+
+  filterText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#374151",
+  },
+
+  filterTextActive: {
+    color: "#fff",
+  },
+
+  createBtn: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 80,
+    marginBottom: 16,
+  },
+
+  createBtnText: {
+    color: "white",
+    fontWeight: "600",
   },
 
   card: {
@@ -281,5 +353,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#9A3412",
     flex: 1,
+  },
+
+  orderIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+
+  orderIdTag: {
+    fontSize: 12,
+    color: COLORS.grey,
+    marginRight: 4,
+    fontWeight: "500",
+  },
+
+  orderId: {
+    fontSize: 12,
+    color: COLORS.primaryDark,
+    fontWeight: "600",
   },
 });

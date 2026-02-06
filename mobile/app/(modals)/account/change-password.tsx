@@ -22,10 +22,12 @@ const ChangePassword = () => {
       Alert.alert("Missing fields", "Please fill all fields.");
       return;
     }
+
     if (next.length < 8) {
       Alert.alert("Weak password", "Password must be at least 8 characters.");
       return;
     }
+
     if (next !== confirm) {
       Alert.alert("Mismatch", "New passwords do not match.");
       return;
@@ -33,7 +35,6 @@ const ChangePassword = () => {
 
     try {
       setLoading(true);
-      // 🔐 API CALL
       // await api.post("/account/change-password", { current, next });
 
       Alert.alert("Success", "Password changed successfully.");
@@ -47,7 +48,7 @@ const ChangePassword = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: "#F2F4F7" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.container}>
@@ -56,15 +57,15 @@ const ChangePassword = () => {
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
+
           <Text style={styles.title}>Change Password</Text>
+
           <TouchableOpacity onPress={handleSave} disabled={loading}>
-            <Text style={[styles.save, loading && { opacity: 0.5 }]}>
-              Save
-            </Text>
+            <Text style={[styles.save, loading && { opacity: 0.5 }]}>Save</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Current */}
+        {/* Current Password */}
         <View style={styles.field}>
           <Text style={styles.label}>Current Password</Text>
           <TextInput
@@ -73,10 +74,11 @@ const ChangePassword = () => {
             value={current}
             onChangeText={setCurrent}
             placeholder="••••••••"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
-        {/* New */}
+        {/* New Password */}
         <View style={styles.field}>
           <Text style={styles.label}>New Password</Text>
           <TextInput
@@ -85,10 +87,11 @@ const ChangePassword = () => {
             value={next}
             onChangeText={setNext}
             placeholder="At least 8 characters"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
-        {/* Confirm */}
+        {/* Confirm Password */}
         <View style={styles.field}>
           <Text style={styles.label}>Confirm New Password</Text>
           <TextInput
@@ -97,6 +100,7 @@ const ChangePassword = () => {
             value={confirm}
             onChangeText={setConfirm}
             placeholder="Repeat new password"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
       </View>
@@ -105,22 +109,26 @@ const ChangePassword = () => {
 };
 
 export default ChangePassword;
+
+/* ---------- Styles ---------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingTop: 40,
   },
 
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 32,
   },
 
   title: {
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
   },
 
   cancel: {
@@ -131,24 +139,32 @@ const styles = StyleSheet.create({
   save: {
     fontSize: 16,
     color: "#2563EB",
-    fontWeight: "600",
+    fontWeight: "700",
   },
 
   field: {
-    marginBottom: 18,
+    marginBottom: 22,
   },
 
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#6B7280",
-    marginBottom: 6,
+    marginBottom: 8,
+    fontWeight: "500",
   },
 
   input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     fontSize: 16,
+    color: "#111827",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
 });

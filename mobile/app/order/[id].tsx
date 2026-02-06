@@ -1,26 +1,31 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { COLORS } from "@/constants/theme";
+import { useGetOrderById } from "@/hooks/useGetOrderById";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import Toast from "react-native-toast-message";
+import { useCancelOrder } from "@/hooks/useCancelOrder";
 
-/* ---------- Dummy Order ---------- */
-const order = {
-  id: "1",
-  weightCategory: "5-10kg",
-  customerName: "Priya Verma",
-  service: "Standard Delivery",
-  pickup: "Indiranagar, Bengaluru",
-  dropoff: "Whitefield, Bengaluru",
-  paymentMethod: "card",
-  orderStatus: "processing",
-  specialItems: "Handle with care",
-  orderItem: ["Laptop", "Charger"],
+/* ---------- Status Config (LABELS) ---------- */
+const STATUS = {
+  pending: { label: "Pickup Pending", color: "#F59E0B" },
+  processing: { label: "Washing", color: "#3B82F6" },
+  ready: { label: "Ready for Delivery", color: "#10B981" },
+  delivered: { label: "Delivered", color: "#22C55E" },
+  cancelled: { label: "Cancelled", color: "#EF4444" },
 };
 
 /* ---------- Status Colors ---------- */
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<string, string> = {
   pending: "#F59E0B",
   processing: "#3B82F6",
   ready: "#10B981",
@@ -29,73 +34,173 @@ const STATUS_COLORS = {
 };
 
 export default function Order() {
-  const statusColor = STATUS_COLORS[order.orderStatus];
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { data: order, isLoading } = useGetOrderById(id);
+  const items = order?.orderItem ?? [];
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const { mutate: cancelOrder } = useCancelOrder();
+
+  /* ---------- LOADING ---------- */
+  if (isLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  /* ---------- SAFETY ---------- */
+  if (!order) {
+    return (
+      <View style={styles.loading}>
+        <Text style={{ color: "#6B7280" }}>Order not found</Text>
+      </View>
+    );
+  }
+
+  /* ---------- STATUS META ---------- */
+  const statusMeta =
+    STATUS[order.orderStatus as keyof typeof STATUS] || STATUS.pending;
+
+  const statusColor = STATUS_COLORS[order.orderStatus] || STATUS_COLORS.pending;
+
+  /* ---------- ONLY PENDING PICKUP CAN BE CANCELLED ---------- */
+  const canCancel = order.orderStatus === "pending";
+
+  /* ---------- CANCEL HANDLER ---------- */
+  const handleCancelOrder = async () => {
+    try {
+      setIsCancelling(true);
+
+      cancelOrder({
+        _id: order._id,
+        orderStatus: order.orderStatus,
+      });
+
+      setShowCancelModal(false);
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: error || "Failed to cancel order",
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.primaryDark} />
-          </Pressable>
+    <>
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
+        {/* ---------- HEADER ---------- */}
+        <View style={styles.header}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+            <Pressable onPress={() => router.back()} hitSlop={10}>
+              <Ionicons
+                name="arrow-back"
+                size={24}
+                color={COLORS.primaryDark}
+              />
+            </Pressable>
+            <Text style={styles.title}>Laundry Order</Text>
+          </View>
 
-          <Text style={styles.title}>Order Details</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: `${statusColor}20` },
+            ]}
+          >
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {statusMeta.label}
+            </Text>
+          </View>
         </View>
 
-        <View
-          style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}
-        >
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {order.orderStatus.toUpperCase()}
-          </Text>
+        {/* ---------- CARD ---------- */}
+        <View style={styles.card}>
+          <Info label="Order ID" value={order.orderId} />
+          <Info label="Customer Name" value={order.customerName} />
+          <Info label="Laundry Service" value={order.service} />
+          <Info label="Weight Category" value={order.weightCategory} />
+          <Info
+            label="Payment Method"
+            value={order.paymentMethod.toUpperCase()}
+          />
+
+          <Divider />
+
+          <Info label="Pickup Address" value={order.pickup} />
+          <Info label="Delivery Address" value={order.dropoff} />
+
+          {items.length > 0 && (
+            <>
+              <Divider />
+              <Text style={styles.sectionTitle}>Included Garments</Text>
+              {items.map((item, index) => (
+                <Text key={index} style={styles.listItem}>
+                  • {item}
+                </Text>
+              ))}
+            </>
+          )}
+
+          {order.specialItems && (
+            <>
+              <Divider />
+              <View style={styles.note}>
+                <Text style={styles.noteText}>
+                  <Text style={{ fontWeight: "600" }}>
+                    Laundry Instructions:{" "}
+                  </Text>
+                  {order.specialItems}
+                </Text>
+              </View>
+            </>
+          )}
+
+          {/* ---------- CANCEL BUTTON (ONLY PENDING) ---------- */}
+          {canCancel ? (
+            <>
+              <Divider />
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setShowCancelModal(true)}
+              >
+                <Ionicons
+                  name="close-circle-outline"
+                  size={18}
+                  color="#EF4444"
+                />
+                <Text style={styles.cancelText}>Cancel Order</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Divider />
+              <Text style={styles.disabledNote}>
+                Order can only be cancelled before pickup.
+              </Text>
+            </>
+          )}
         </View>
-      </View>
+      </ScrollView>
 
-      {/* Card */}
-      <View style={styles.card}>
-        <Info label="Customer" value={order.customerName} />
-        <Info label="Service" value={order.service} />
-        <Info label="Weight Category" value={order.weightCategory} />
-        <Info
-          label="Payment Method"
-          value={order.paymentMethod.toUpperCase()}
-        />
-
-        <Divider />
-
-        <Info label="Pickup Location" value={order.pickup} />
-        <Info label="Drop-off Location" value={order.dropoff} />
-
-        {order.orderItem?.length > 0 && (
-          <>
-            <Divider />
-            <Text style={styles.sectionTitle}>Items</Text>
-            {order.orderItem.map((item, index) => (
-              <Text key={index} style={styles.listItem}>
-                • {item}
-              </Text>
-            ))}
-          </>
-        )}
-
-        {order.specialItems && (
-          <>
-            <Divider />
-            <View style={styles.note}>
-              <Text style={styles.noteText}>
-                <Text style={{ fontWeight: "600" }}>Note: </Text>
-                {order.specialItems}
-              </Text>
-            </View>
-          </>
-        )}
-      </View>
-    </ScrollView>
+      {/* ---------- CONFIRMATION MODAL ---------- */}
+      <DeleteConfirmationModal
+        visible={showCancelModal}
+        title="Cancel Order?"
+        description="Only pickup pending orders can be cancelled."
+        confirmText="Cancel Order"
+        isLoading={isCancelling}
+        onCancel={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+      />
+    </>
   );
 }
 
-/* ---------- Small Components ---------- */
+/* ---------- SMALL COMPONENTS ---------- */
 
 const Info = ({ label, value }: { label: string; value: string }) => (
   <View style={styles.row}>
@@ -106,7 +211,7 @@ const Info = ({ label, value }: { label: string; value: string }) => (
 
 const Divider = () => <View style={styles.divider} />;
 
-/* ---------- Styles ---------- */
+/* ---------- STYLES (UNCHANGED UI) ---------- */
 
 const styles = StyleSheet.create({
   container: {
@@ -114,6 +219,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 20,
     marginTop: 50,
+  },
+
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
   },
 
   header: {
@@ -197,5 +309,28 @@ const styles = StyleSheet.create({
   noteText: {
     fontSize: 14,
     color: "#9A3412",
+  },
+
+  cancelButton: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#EF4444",
+  },
+
+  cancelText: {
+    color: "#EF4444",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  disabledNote: {
+    fontSize: 13,
+    color: "#6B7280",
+    textAlign: "center",
   },
 });

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -10,20 +9,19 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-
 const { height } = Dimensions.get("window");
 
 export default function AuthScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require("../assets/images/laundry-bg.png")} // Add your background
+        source={require("../assets/images/app.jpg")}
         resizeMode="cover"
         style={styles.background}
       >
         <LinearGradient
-          colors={["rgba(0,0,0,0.85)", "rgba(0,0,0,0.60)", "transparent"]}
-          start={{ x: 0.5, y: 1 }}
+          colors={["rgba(0,0,0,0.9)", "rgba(0,0,0,0.6)", "transparent"]}
+          start={{ x: 0.5, y: 0.5 }}
           end={{ x: 0.5, y: 0 }}
           style={styles.gradient}
         >
@@ -31,116 +29,127 @@ export default function AuthScreen() {
             {/* Logo */}
             <View style={styles.logoContainer}>
               <Image
-                source={require("../assets/images/laundry-logo.png")} // Add your logo
+                source={require("../assets/images/famflix-logo-wobg.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
             </View>
 
-            {/* Heading */}
-            <Text style={styles.title}>Fresh Clothes. Zero Effort.</Text>
+            {/* Subtitle */}
             <Text style={styles.subtitle}>
-              We pick up, wash, iron & deliver your laundry — right from your
-              home.
+              All your favorite Movies & TV Shows. All in one place.
             </Text>
 
-            {/* Signup */}
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => router.push("/(auth)/signup")}
-            >
-              <Text style={styles.primaryButtonText}>GET STARTED</Text>
+            {/* Free Trial Button */}
+            <TouchableOpacity style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>EXPLORE FREE TRIAL</Text>
             </TouchableOpacity>
 
-            {/* Login */}
+            {/* Login Button */}
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push("/(auth)/login")}
+              onPress={() => router.replace("/(auth)/login")}
             >
               <Text style={styles.secondaryButtonText}>LOG IN</Text>
             </TouchableOpacity>
 
-            {/* Guest */}
-            <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
-              <Text style={styles.guestText}>Continue as Guest</Text>
-            </TouchableOpacity>
+            {/* Create Account */}
+            <View style={styles.footerRow}>
+              <Text style={styles.orText}>or </Text>
+              <TouchableOpacity
+                onPress={() => router.replace("/(auth)/signup")}
+              >
+                <Text style={styles.createAccountText}>Create Account</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </LinearGradient>
       </ImageBackground>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
+
   background: {
     flex: 1,
     justifyContent: "flex-end",
   },
+
   gradient: {
-    height: height * 0.55,
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    height: height * 0.6,
+    paddingHorizontal: 22,
+    paddingVertical: 30,
     width: "100%",
   },
+
   content: {
     flex: 1,
     justifyContent: "flex-end",
   },
+
   logoContainer: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
+
   logo: {
-    width: 160,
-    height: 160,
+    width: 192, // w-48
+    height: 56, // h-14
   },
-  title: {
-    color: "#fff",
-    fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 6,
-  },
+
   subtitle: {
-    color: "#ddd",
-    fontSize: 15,
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
     textAlign: "center",
+    marginTop: 8,
     marginBottom: 24,
   },
+
   primaryButton: {
-    backgroundColor: "#1E90FF",
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: "#3B82F6",
+    paddingVertical: 12,
+    borderRadius: 6,
     alignItems: "center",
     marginBottom: 12,
   },
+
   primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#FFFFFF",
     fontWeight: "700",
   },
+
   secondaryButton: {
     borderWidth: 2,
-    borderColor: "#1E90FF",
-    paddingVertical: 14,
-    borderRadius: 8,
+    borderColor: "#1D4ED8",
+    paddingVertical: 12,
+    borderRadius: 6,
     alignItems: "center",
     marginBottom: 12,
   },
+
   secondaryButtonText: {
-    color: "#1E90FF",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#3B82F6",
   },
-  guestText: {
-    color: "#bbb",
-    fontSize: 14,
-    textAlign: "center",
-    textDecorationLine: "underline",
-    marginTop: 4,
+
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+  },
+
+  orText: {
+    color: "#F97316",
+  },
+
+  createAccountText: {
+    color: "#3B82F6",
+    fontWeight: "600",
   },
 });

@@ -56,7 +56,7 @@ export default function SplashScreen() {
       }}
     >
       {/* FIRST IMAGE — Big F */}
-      {/* <Animated.Image
+      <Animated.Image
         source={require("@/assets/images/favicon-famflix.png")}
         style={{
           width: 80,
@@ -66,10 +66,10 @@ export default function SplashScreen() {
           opacity: firstOpacity,
           transform: [{ scale: bounceScale }, { translateX: slideXFirst }],
         }}
-      /> */}
+      />
 
       {/* SECOND IMAGE — Full FAMFLIX */}
-      {/* <Animated.Image
+      <Animated.Image
         source={require("@/assets/images/famflix-logo-wobg.png")}
         style={{
           width: 230,
@@ -78,7 +78,7 @@ export default function SplashScreen() {
           opacity: logoOpacity,
           transform: [{ translateX: slideXMain }],
         }}
-      /> */}
+      />
     </View>
   );
 }

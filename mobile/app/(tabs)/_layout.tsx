@@ -85,8 +85,8 @@ const TabLayout = () => {
           borderTopWidth: 0,
           position: "absolute",
           elevation: 0,
-          height: 90,
-          paddingBottom: 20,
+          height: 100,
+          paddingBottom: 40,
         },
       }}
     >

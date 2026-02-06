@@ -1,33 +1,39 @@
-import React, { useEffect } from "react";
-import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { router } from "expo-router";
 import SplashScreen from "@/components/SplashScreen";
-import { View } from "react-native";
-import AuthScreen from "@/components/AuthScreen";
 import { useAuthUserStore } from "@/store/authUser";
 
 export default function Index() {
-  const router = useRouter();
-  const { isCheckingAuth, authCheck } = useAuthUserStore();
-  const user = false;
+  const { user, isCheckingAuth, authCheck } = useAuthUserStore();
+  const [minSplashDone, setMinSplashDone] = useState(false);
+
+  // Run auth check
   useEffect(() => {
     authCheck();
-  }, [authCheck]);
+  }, []);
 
+  // Ensure splash screen stays at least 2 seconds
   useEffect(() => {
-    if (!isCheckingAuth && user) {
-      // imperatively replace screen — no white flash
+    const timer = setTimeout(() => {
+      setMinSplashDone(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // When both authCheck is finished AND 2 sec splash is done → navigate
+  useEffect(() => {
+    if (!isCheckingAuth && user && minSplashDone) {
+      // router.dismissAll();
       router.replace("/(tabs)/home");
     }
-  }, [isCheckingAuth, user]);
+  }, [isCheckingAuth, user, minSplashDone]);
 
-  if (isCheckingAuth) {
+  if (isCheckingAuth || !minSplashDone) {
     return <SplashScreen />;
   }
 
-  // while redirecting, keep black background to avoid flash
-  if (user) {
-    return <View className="flex-1 bg-white" />;
-  }
-
-  return <AuthScreen />;
+  return router.replace("/(auth)");
 }
+
+//  backgroundColor: "#F2F4F7",
