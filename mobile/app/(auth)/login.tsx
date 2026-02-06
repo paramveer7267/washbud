@@ -26,12 +26,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin() {
+    const value = emailorusername.trim();
     try {
-      if (!emailorusername || !password) {
+      if (!value || !password) {
         Toast.show({ type: "error", text1: "Please fill all fields" });
         return;
       }
-      await login({ emailorusername, password });
+      await login({ emailorusername: value, password });
     } catch (err) {
       console.error("Login Error:", err);
       Toast.show({ type: "error", text1: "Login failed" });

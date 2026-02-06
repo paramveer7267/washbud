@@ -194,8 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F6F8",
     paddingHorizontal: 20,
-    paddingTop: 50,
-    marginTop: 10,
+    paddingTop: 60,
   },
 
   header: {
@@ -276,7 +275,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 12,
-    marginBottom: 30,
+    marginBottom: 60,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,

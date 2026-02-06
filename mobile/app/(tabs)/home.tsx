@@ -8,7 +8,6 @@ import {
   Image,
   Modal,
   Animated,
-  Platform,
   Pressable,
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";

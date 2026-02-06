@@ -86,132 +86,125 @@ export default function CreateOrder() {
 
   /* ---------- JSX ---------- */
   return (
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.container}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={COLORS.primaryDark}
-              />
-            </TouchableOpacity>
-            <Text style={styles.title}>Create Order</Text>
-          </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.primaryDark} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Create Order</Text>
+        </View>
 
-          {/* Form */}
-          <View style={styles.card}>
-            <Input
-              label="Customer Name"
-              value={form.customerName}
-              onChange={(v: string) => update("customerName", v)}
-              placeholder="Enter customer name"
-            />
+        {/* Form */}
+        <View style={styles.card}>
+          <Input
+            label="Customer Name"
+            value={form.customerName}
+            onChange={(v: string) => update("customerName", v)}
+            placeholder="Enter customer name"
+          />
 
-            <Input
-              label="Service *"
-              value={form.service}
-              onChange={(v: string) => update("service", v)}
-              placeholder="Wash / Iron / Dry Clean"
-            />
+          <Input
+            label="Service *"
+            value={form.service}
+            onChange={(v: string) => update("service", v)}
+            placeholder="Wash / Iron / Dry Clean"
+          />
 
-            <TouchableOpacity
-              onPress={() => router.push("/home/saved-addresses")}
-            >
-              <Text
-                style={{
-                  color: COLORS.primary,
-                  fontWeight: "600",
-                  textAlign: "center",
-                }}
-              >
-                Add New Address
-              </Text>
-            </TouchableOpacity>
-
-            {/* PICKUP */}
-            <Input label="Pickup Location" value={pickupAddress} />
-            <ChangeBtn onPress={() => setAddressTarget("pickup")} />
-
-            {/* DROPOFF */}
-            <Input label="Drop-off Location" value={dropoffAddress} />
-            <ChangeBtn onPress={() => setAddressTarget("dropoff")} />
-
-            <Select
-              label="Weight Category"
-              options={WEIGHT_CATEGORIES}
-              value={form.weightCategory}
-              onSelect={(v: string) => update("weightCategory", v)}
-            />
-
-            <Select
-              label="Payment Method"
-              options={PAYMENT_METHODS}
-              value={form.paymentMethod}
-              onSelect={(v: string) => update("paymentMethod", v)}
-            />
-
-            <Input
-              label="Order Items (comma separated)"
-              value={form.orderItem}
-              onChange={(v: string) => update("orderItem", v)}
-              placeholder="Shirt, Jeans, Bedsheet"
-            />
-
-            <Input
-              label="Special Instructions"
-              value={form.specialItems}
-              onChange={(v: string) => update("specialItems", v)}
-              placeholder="No starch, gentle wash"
-            />
-          </View>
-
-          {/* Submit */}
           <TouchableOpacity
-            style={styles.submitBtn}
-            onPress={handleSubmit}
-            disabled={isPending}
+            onPress={() => router.push("/home/saved-addresses")}
           >
-            <Text style={styles.submitText}>
-              {isPending ? "Placing Order..." : "Create Order"}
+            <Text
+              style={{
+                color: COLORS.primary,
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Add New Address
             </Text>
           </TouchableOpacity>
 
-          {/* ADDRESS MODAL */}
-          <Modal transparent visible={!!addressTarget} animationType="fade">
-            <View style={styles.modalOverlay}>
-              <View style={styles.modal}>
-                <Text style={styles.modalTitle}>Select Address</Text>
+          {/* PICKUP */}
+          <Input label="Pickup Location" value={pickupAddress} />
+          <ChangeBtn onPress={() => setAddressTarget("pickup")} />
 
-                {user?.address?.map((addr) => (
-                  <TouchableOpacity
-                    key={addr}
-                    style={styles.addressItem}
-                    onPress={() => {
-                      if (addressTarget === "pickup") setPickupAddress(addr);
-                      if (addressTarget === "dropoff") setDropoffAddress(addr);
-                      setAddressTarget(null);
-                    }}
-                  >
-                    <Text>{addr}</Text>
-                  </TouchableOpacity>
-                ))}
+          {/* DROPOFF */}
+          <Input label="Drop-off Location" value={dropoffAddress} />
+          <ChangeBtn onPress={() => setAddressTarget("dropoff")} />
 
-                <TouchableOpacity onPress={() => setAddressTarget(null)}>
-                  <Text style={styles.cancel}>Cancel</Text>
+          <Select
+            label="Weight Category"
+            options={WEIGHT_CATEGORIES}
+            value={form.weightCategory}
+            onSelect={(v: string) => update("weightCategory", v)}
+          />
+
+          <Select
+            label="Payment Method"
+            options={PAYMENT_METHODS}
+            value={form.paymentMethod}
+            onSelect={(v: string) => update("paymentMethod", v)}
+          />
+
+          <Input
+            label="Order Items (comma separated)"
+            value={form.orderItem}
+            onChange={(v: string) => update("orderItem", v)}
+            placeholder="Shirt, Jeans, Bedsheet"
+          />
+
+          <Input
+            label="Special Instructions"
+            value={form.specialItems}
+            onChange={(v: string) => update("specialItems", v)}
+            placeholder="No starch, gentle wash"
+          />
+        </View>
+
+        {/* Submit */}
+        <TouchableOpacity
+          style={styles.submitBtn}
+          onPress={handleSubmit}
+          disabled={isPending}
+        >
+          <Text style={styles.submitText}>
+            {isPending ? "Placing Order..." : "Create Order"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* ADDRESS MODAL */}
+        <Modal transparent visible={!!addressTarget} animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modal}>
+              <Text style={styles.modalTitle}>Select Address</Text>
+
+              {user?.address?.map((addr) => (
+                <TouchableOpacity
+                  key={addr}
+                  style={styles.addressItem}
+                  onPress={() => {
+                    if (addressTarget === "pickup") setPickupAddress(addr);
+                    if (addressTarget === "dropoff") setDropoffAddress(addr);
+                    setAddressTarget(null);
+                  }}
+                >
+                  <Text>{addr}</Text>
                 </TouchableOpacity>
-              </View>
+              ))}
+
+              <TouchableOpacity onPress={() => setAddressTarget(null)}>
+                <Text style={styles.cancel}>Cancel</Text>
+              </TouchableOpacity>
             </View>
-          </Modal>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </View>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -298,7 +291,7 @@ const styles = StyleSheet.create({
   changeAddress: { color: COLORS.primary, fontWeight: "600", marginBottom: 16 },
   submitBtn: {
     marginTop: 20,
-    marginBottom: 40,
+    marginBottom: 50,
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
     borderRadius: 12,
