@@ -89,14 +89,16 @@ export class OrdersService {
   // SEARCH ORDER
   // --------------------
   async getOrderByOrderId(searchId: string) {
-    const order = await this.orderModel
-      .findOne({
-        orderId: {
-          $regex: `-${searchId}$`, // 👈 match after hyphen
-          $options: 'i', // case-insensitive
-        },
-      })
-      .lean();
+    if (!searchId || searchId.length < 3) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const order = await this.orderModel.findOne({
+      orderId: {
+        $regex: `-${searchId}`,
+        $options: 'i',
+      },
+    });
 
     if (!order) {
       throw new NotFoundException('Order not found');
