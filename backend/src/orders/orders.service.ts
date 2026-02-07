@@ -86,6 +86,26 @@ export class OrdersService {
   }
 
   // --------------------
+  // SEARCH ORDER
+  // --------------------
+  async getOrderByOrderId(searchId: string) {
+    const order = await this.orderModel
+      .findOne({
+        orderId: {
+          $regex: `-${searchId}$`, // 👈 match after hyphen
+          $options: 'i', // case-insensitive
+        },
+      })
+      .lean();
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  // --------------------
   // DELETE ORDER
   // --------------------
   async remove(id: string): Promise<{ message: string }> {

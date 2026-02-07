@@ -13,6 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -29,6 +30,11 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
+  @Public()
+  @Get('order-id/:orderId')
+  async getByOrderId(@Param('orderId') orderId: string) {
+    return this.ordersService.getOrderByOrderId(orderId);
+  }
 
   @Get('user/:id')
   findMyOrders(@Param('id') id: string) {
