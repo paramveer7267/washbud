@@ -4,8 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   ActivityIndicator,
   Pressable,
@@ -42,92 +40,83 @@ const Search = () => {
     : "#6B7280";
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        {/* HEADER */}
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color="#111827" />
-        </TouchableOpacity>
+    <View style={styles.container}>
+      {/* HEADER */}
+      <TouchableOpacity onPress={() => router.back()}>
+        <Feather name="arrow-left" size={22} color="#111827" />
+      </TouchableOpacity>
 
-        <Text style={styles.title}>Track your order</Text>
-        <Text style={styles.subtitle}>
-          Enter the last part of your order ID
-        </Text>
+      <Text style={styles.title}>Track your order</Text>
+      <Text style={styles.subtitle}>Enter the last part of your order ID</Text>
 
-        {/* INPUT */}
-        <TextInput
-          placeholder="Eg: 3RICBT"
-          placeholderTextColor="#9CA3AF"
-          value={query}
-          onChangeText={setQuery}
-          style={styles.input}
-          autoCapitalize="characters"
-        />
+      {/* INPUT */}
+      <TextInput
+        placeholder="Eg: 3RICBT"
+        placeholderTextColor="#9CA3AF"
+        value={query}
+        onChangeText={setQuery}
+        style={styles.input}
+        autoCapitalize="characters"
+      />
 
-        {/* RESULTS */}
-        <View style={{ marginTop: 24 }}>
-          {isLoading && (
-            <ActivityIndicator size="small" color={COLORS.primary} />
-          )}
+      {/* RESULTS */}
+      <View style={{ marginTop: 24 }}>
+        {isLoading && <ActivityIndicator size="small" color={COLORS.primary} />}
 
-          {isError && searchId && (
-            <Text style={styles.errorText}>Order not found</Text>
-          )}
+        {isError && searchId && (
+          <Text style={styles.errorText}>Order not found</Text>
+        )}
 
-          {order && (
-            <Pressable
-              style={styles.card}
-              onPress={() => router.push(`/order/${order._id}`)}
-            >
-              {/* Top row */}
-              <View style={styles.cardHeader}>
-                <Text style={styles.orderId}>{order.orderId}</Text>
+        {order && (
+          <Pressable
+            style={styles.card}
+            onPress={() => router.push(`/order/${order._id}`)}
+          >
+            {/* Top row */}
+            <View style={styles.cardHeader}>
+              <Text style={styles.orderId}>{order.orderId}</Text>
 
-                <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: `${statusColor}20` },
-                  ]}
-                >
-                  <Text style={[styles.statusText, { color: statusColor }]}>
-                    {order.orderStatus.toUpperCase()}
-                  </Text>
-                </View>
+              <View
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: `${statusColor}20` },
+                ]}
+              >
+                <Text style={[styles.statusText, { color: statusColor }]}>
+                  {order.orderStatus.toUpperCase()}
+                </Text>
               </View>
+            </View>
 
-              {/* Details */}
-              <Text style={styles.detailText}>
-                <Text style={styles.label}>Customer:</Text> {order.customerName}
-              </Text>
+            {/* Details */}
+            <Text style={styles.detailText}>
+              <Text style={styles.label}>Customer:</Text> {order.customerName}
+            </Text>
 
-              <Text style={styles.detailText}>
-                <Text style={styles.label}>Service:</Text> {order.service}
-              </Text>
+            <Text style={styles.detailText}>
+              <Text style={styles.label}>Service:</Text> {order.service}
+            </Text>
 
-              <Text style={styles.detailText}>
-                <Text style={styles.label}>Payment:</Text>{" "}
-                {order.paymentMethod.toUpperCase()}
-              </Text>
+            <Text style={styles.detailText}>
+              <Text style={styles.label}>Payment:</Text>{" "}
+              {order.paymentMethod.toUpperCase()}
+            </Text>
 
-              <Text style={styles.dateText}>
-                Placed on {new Date(order.createdAt).toLocaleDateString()}
-              </Text>
+            <Text style={styles.dateText}>
+              Placed on {new Date(order.createdAt).toLocaleDateString()}
+            </Text>
 
-              {/* Footer */}
-              <View style={styles.cardFooter}>
-                <Text style={styles.viewText}>View details</Text>
-                <Feather name="chevron-right" size={18} color="#6B7280" />
-              </View>
-            </Pressable>
-          )}
-        </View>
-
-        <View style={{ flex: 1 }} />
+            {/* Footer */}
+            <View style={styles.cardFooter}>
+              <Text style={styles.viewText}>View details</Text>
+              <Feather name="chevron-right" size={18} color="#6B7280" />
+            </View>
+          </Pressable>
+        )}
       </View>
-    </KeyboardAvoidingView>
+
+      <View style={{ flex: 1 }} />
+    </View>
   );
 };
 

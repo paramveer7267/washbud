@@ -85,7 +85,7 @@ export default function Signup() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: "#F9FAFB" }}
     >
       <ScrollView
         contentContainerStyle={styles.container}
@@ -232,7 +232,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     marginTop: 50,
-    justifyContent: "center",
     backgroundColor: "#F9FAFB",
   },
   header: { marginBottom: 32 },

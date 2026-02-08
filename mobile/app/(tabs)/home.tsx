@@ -15,8 +15,10 @@ import { router } from "expo-router";
 import ImageCarousel from "@/components/ImageCarousel";
 import carouselData, { STORIES } from "@/constants/home";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuthUserStore } from "@/store/authUser";
 
 export default function Home() {
+  const { user } = useAuthUserStore();
   const [activeStory, setActiveStory] = useState<any | null>(null);
   const [seenStories, setSeenStories] = useState<string[]>([]);
   const progress = useRef(new Animated.Value(0)).current;
@@ -50,16 +52,23 @@ export default function Home() {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* ================= HEADER ================= */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push("/home/pickup")}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => router.push("/home/pickup")}
+          >
             <View style={styles.headerLeft}>
               <MaterialIcons name="navigation" size={20} color="#F04438" />
-              <View style={{ marginLeft: 8 }}>
+              <View style={{ marginLeft: 8, flex: 1 }}>
                 <View style={styles.row}>
                   <Text style={styles.headerTitle}>Pickup From</Text>
                   <Feather name="chevron-down" size={16} color="#667085" />
                 </View>
-                <Text style={styles.headerSubtitle}>
-                  Select a pickup location
+                <Text
+                  style={styles.headerSubtitle}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {user?.currentAddress || "Select a pickup location"}
                 </Text>
               </View>
             </View>
@@ -128,7 +137,7 @@ export default function Home() {
                 <LinearGradient
                   colors={
                     seen
-                      ? ["#D1D5DB", "#D1D5DB"]
+                      ? ["#8134AF", "#F58529"]
                       : ["#F58529", "#DD2A7B", "#8134AF", "#515BD4"]
                   }
                   start={{ x: 0, y: 0 }}
@@ -243,11 +252,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#101828",
   },
-
   headerSubtitle: {
     fontSize: 13,
     color: "#667085",
     marginTop: 2,
+    flexShrink: 1,
   },
 
   headerRight: {

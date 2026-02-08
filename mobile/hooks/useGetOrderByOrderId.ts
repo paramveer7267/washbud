@@ -8,10 +8,9 @@ export const useGetOrderByOrderId = (orderId?: string | null) => {
       if (!orderId) return null;
 
       const res = await api.get(`/orders/order-id/${orderId}`);
-      console.log("Fetched order by orderId:", res.data);
       return res.data;
     },
     enabled: !!orderId,
-    retry: false, // ✅ avoid retry spam for invalid IDs
+    retry: false,
   });
 };
