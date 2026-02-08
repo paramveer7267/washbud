@@ -29,20 +29,30 @@ export default function Login() {
     const value = emailorusername.trim();
     try {
       if (!value || !password) {
-        Toast.show({ type: "error", text1: "Please fill all fields" });
+        Toast.show({
+          type: "error",
+          text1: "Please fill all fields",
+          position: "top",
+          topOffset: 60,
+        });
         return;
       }
       await login({ emailorusername: value, password });
     } catch (err) {
       console.error("Login Error:", err);
-      Toast.show({ type: "error", text1: "Login failed" });
+      Toast.show({
+        type: "error",
+        text1: "Login failed",
+        position: "top",
+        topOffset: 60,
+      });
     } finally {
     }
   }
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1 }}
     >
       <ScrollView

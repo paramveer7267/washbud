@@ -16,7 +16,8 @@ import { COLORS } from "@/constants/theme";
 import { useAuthUserStore } from "@/store/authUser";
 import { useCreateOrder } from "@/hooks/useCreateOrder";
 import Toast from "react-native-toast-message";
-import { SafeAreaView } from "react-native-safe-area-context";
+
+
 /* ---------- Constants ---------- */
 const PAYMENT_METHODS = ["cash", "card", "upi", "online", "cod"];
 const WEIGHT_CATEGORIES = ["0-5kg", "5-10kg", "10-20kg", "20kg+"];
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    marginTop: 50,
+    marginTop: 40,
     paddingBottom: 80,
   },
   header: {

@@ -14,8 +14,9 @@ import { useGetOrderById } from "@/hooks/useGetOrderById";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import Toast from "react-native-toast-message";
 import { useCancelOrder } from "@/hooks/useCancelOrder";
+import { useDeleteOrder } from "@/hooks/useDeleteOrder";
 
-/* ---------- Status Config (LABELS) ---------- */
+/* ---------- Status Config ---------- */
 const STATUS = {
   pending: { label: "Pickup Pending", color: "#F59E0B" },
   processing: { label: "Washing", color: "#3B82F6" },
@@ -24,7 +25,6 @@ const STATUS = {
   cancelled: { label: "Cancelled", color: "#EF4444" },
 };
 
-/* ---------- Status Colors ---------- */
 const STATUS_COLORS: Record<string, string> = {
   pending: "#F59E0B",
   processing: "#3B82F6",
@@ -36,10 +36,17 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Order() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: order, isLoading } = useGetOrderById(id);
+
   const items = order?.orderItem ?? [];
+
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { mutate: cancelOrder } = useCancelOrder();
+  const { mutate: deleteOrder } = useDeleteOrder();
 
   /* ---------- LOADING ---------- */
   if (isLoading) {
@@ -59,16 +66,19 @@ export default function Order() {
     );
   }
 
-  /* ---------- STATUS META ---------- */
+  /* ---------- STATUS ---------- */
   const statusMeta =
     STATUS[order.orderStatus as keyof typeof STATUS] || STATUS.pending;
 
   const statusColor = STATUS_COLORS[order.orderStatus] || STATUS_COLORS.pending;
 
-  /* ---------- ONLY PENDING PICKUP CAN BE CANCELLED ---------- */
+  /* ---------- PERMISSIONS ---------- */
   const canCancel = order.orderStatus === "pending";
 
-  /* ---------- CANCEL HANDLER ---------- */
+  const canDelete =
+    order.orderStatus === "cancelled" || order.orderStatus === "delivered";
+
+  /* ---------- CANCEL ---------- */
   const handleCancelOrder = async () => {
     try {
       setIsCancelling(true);
@@ -83,9 +93,42 @@ export default function Order() {
       Toast.show({
         type: "error",
         text1: error || "Failed to cancel order",
+
       });
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  /* ---------- DELETE ---------- */
+  const handleDeleteOrder = async () => {
+    try {
+      setIsDeleting(true);
+
+      deleteOrder(
+        { _id: order._id },
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Order deleted successfully",
+              position:"top",
+              topOffset: 60,
+            });
+            router.replace("/orders");
+          },
+          onError: () => {
+            Toast.show({
+              type: "error",
+              text1: "Failed to delete order",
+            });
+          },
+        },
+      );
+
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -159,7 +202,7 @@ export default function Order() {
             </>
           )}
 
-          {/* ---------- CANCEL BUTTON (ONLY PENDING) ---------- */}
+          {/* ---------- CANCEL ---------- */}
           {canCancel ? (
             <>
               <Divider />
@@ -183,10 +226,24 @@ export default function Order() {
               </Text>
             </>
           )}
+
+          {/* ---------- DELETE (ONLY CANCELLED / DELIVERED) ---------- */}
+          {canDelete && (
+            <>
+              <Divider />
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setShowDeleteModal(true)}
+              >
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={styles.cancelText}>Delete Order</Text>
+              </Pressable>
+            </>
+          )}
         </View>
       </ScrollView>
 
-      {/* ---------- CONFIRMATION MODAL ---------- */}
+      {/* ---------- CANCEL MODAL ---------- */}
       <DeleteConfirmationModal
         visible={showCancelModal}
         title="Cancel Order?"
@@ -195,6 +252,17 @@ export default function Order() {
         isLoading={isCancelling}
         onCancel={() => setShowCancelModal(false)}
         onConfirm={handleCancelOrder}
+      />
+
+      {/* ---------- DELETE MODAL ---------- */}
+      <DeleteConfirmationModal
+        visible={showDeleteModal}
+        title="Delete Order?"
+        description="This action is permanent and cannot be undone."
+        confirmText="Delete Order"
+        isLoading={isDeleting}
+        onCancel={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteOrder}
       />
     </>
   );
@@ -211,14 +279,14 @@ const Info = ({ label, value }: { label: string; value: string }) => (
 
 const Divider = () => <View style={styles.divider} />;
 
-/* ---------- STYLES (UNCHANGED UI) ---------- */
+/* ---------- STYLES ---------- */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
     paddingHorizontal: 20,
-    marginTop: 50,
+    marginTop: 40,
   },
 
   loading: {

@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginBottom: 90,
-    marginTop: 60,
+    marginTop: 50,
   },
 
   row: {

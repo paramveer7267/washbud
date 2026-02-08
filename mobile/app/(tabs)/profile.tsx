@@ -8,6 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useAuthUserStore } from "@/store/authUser";
+import { stringToColor, getInitials } from "@/utils/profileColor";
 
 export default function Profile() {
   const { user } = useAuthUserStore();
@@ -23,8 +24,15 @@ export default function Profile() {
       </View>
       {/* Profile */}
       <View style={styles.profile}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>PS</Text>
+        <View
+          style={[
+            styles.avatar,
+            {
+              backgroundColor: stringToColor(user?.name ?? "User"),
+            },
+          ]}
+        >
+          <Text style={styles.avatarText}>{getInitials(user?.name)}</Text>
         </View>
 
         <Text style={styles.name}>{user?.name}</Text>
@@ -62,6 +70,8 @@ export default function Profile() {
         <SettingsItem
           icon="arrow-up-circle-outline"
           label="Upgrade to Washbud Plus"
+          showArrow
+          onPress={() => router.push("/(modals)/profile/subscriptions")}
         />
 
         <SettingsItem
@@ -143,7 +153,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     marginBottom: 90,
-    marginTop: 50,
+    marginTop: 40,
   },
 
   /* ---------- Header ---------- */

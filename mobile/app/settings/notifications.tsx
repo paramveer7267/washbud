@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
@@ -189,7 +188,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F6F8",
     paddingHorizontal: 20,
     paddingTop: 50,
-    marginTop: 10,
   },
 
   header: {

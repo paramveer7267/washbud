@@ -80,15 +80,27 @@ const Settings = () => {
       {/* ---------- Payments & Orders ---------- */}
       <Text style={styles.sectionTitle}>Payments & Orders</Text>
       <View style={styles.card}>
-        <SettingsItem icon="card-outline" label="Payment Methods" onPress={() => router.push("/settings/payment-methods")}/>
+        <SettingsItem
+          icon="card-outline"
+          label="Payment Methods"
+          onPress={() => router.push("/settings/payment-methods")}
+        />
 
-        <SettingsItem icon="receipt-outline" label="Order History" onPress={() => router.push("/settings/order-history")}/>
+        <SettingsItem
+          icon="receipt-outline"
+          label="Order History"
+          onPress={() => router.push("/settings/order-history")}
+        />
       </View>
 
       {/* ---------- Preferences ---------- */}
       <Text style={styles.sectionTitle}>Preferences</Text>
       <View style={styles.card}>
-        <SettingsItem icon="notifications-outline" label="Notifications" onPress={() => router.push("/settings/notifications")}/>
+        <SettingsItem
+          icon="notifications-outline"
+          label="Notifications"
+          onPress={() => router.push("/settings/notifications")}
+        />
 
         <SettingsItem icon="language-outline" label="Language" />
 
@@ -104,7 +116,11 @@ const Settings = () => {
       <View style={styles.card}>
         <SettingsItem icon="help-circle-outline" label="Help Center" />
 
-        <SettingsItem icon="chatbubble-outline" label="Contact Support" />
+        <SettingsItem
+          icon="chatbubble-outline"
+          label="Contact Support"
+          onPress={() => router.push("/settings/contact")}
+        />
       </View>
 
       {/* ---------- About ---------- */}
@@ -179,7 +195,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingTop: 50,
-    marginTop: 10,
   },
 
   title: {

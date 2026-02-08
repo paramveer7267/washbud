@@ -16,6 +16,16 @@ import { COLORS } from "@/constants/theme";
 import { useAuthUserStore } from "@/store/authUser";
 import Toast from "react-native-toast-message";
 
+/* ---------- HELPERS ---------- */
+const isValidAustralianNumber = (number: string) => {
+  const cleaned = number.replace(/\s+/g, "");
+
+  const localRegex = /^04\d{8}$/; // 0412345678
+  const intlRegex = /^\+614\d{8}$/; // +61412345678
+
+  return localRegex.test(cleaned) || intlRegex.test(cleaned);
+};
+
 /* ---------- Screen ---------- */
 export default function Signup() {
   const signup = useAuthUserStore((state) => state.signup);
@@ -24,6 +34,7 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -31,10 +42,23 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = () => {
-    if (!name || !username || !email || !password) {
+    if (!name || !username || !email || !contactNumber || !password) {
       Toast.show({
         type: "error",
         text1: "All fields are required",
+        position: "top",
+        topOffset: 60,
+      });
+      return;
+    }
+
+    if (!isValidAustralianNumber(contactNumber)) {
+      Toast.show({
+        type: "error",
+        text1: "Enter a valid Australian mobile number",
+        text2: "Example: 0412345678 or +61412345678",
+        position: "top",
+        topOffset: 60,
       });
       return;
     }
@@ -43,6 +67,8 @@ export default function Signup() {
       Toast.show({
         type: "error",
         text1: "Passwords do not match",
+        position: "top",
+        topOffset: 60,
       });
       return;
     }
@@ -51,6 +77,7 @@ export default function Signup() {
       name,
       username,
       email,
+      contactNumber,
       password,
     });
   };
@@ -67,7 +94,6 @@ export default function Signup() {
       >
         {/* Header */}
         <View style={styles.header}>
-          {/* {AuthScreen} */}
           <Ionicons
             name="arrow-back"
             size={24}
@@ -82,7 +108,6 @@ export default function Signup() {
 
         {/* Form */}
         <View style={styles.card}>
-          {/* Full Name */}
           <Input
             icon="person-outline"
             placeholder="Full Name"
@@ -90,7 +115,6 @@ export default function Signup() {
             onChangeText={setName}
           />
 
-          {/* Username */}
           <Input
             icon="at-outline"
             placeholder="Username"
@@ -99,7 +123,6 @@ export default function Signup() {
             autoCapitalize="none"
           />
 
-          {/* Email */}
           <Input
             icon="mail-outline"
             placeholder="Email"
@@ -109,7 +132,15 @@ export default function Signup() {
             keyboardType="email-address"
           />
 
-          {/* Password */}
+          {/* CONTACT NUMBER */}
+          <Input
+            icon="call-outline"
+            placeholder="Mobile Number (Australia)"
+            value={contactNumber}
+            onChangeText={setContactNumber}
+            keyboardType="phone-pad"
+          />
+
           <PasswordInput
             placeholder="Password"
             value={password}
@@ -118,7 +149,6 @@ export default function Signup() {
             toggle={() => setShowPassword(!showPassword)}
           />
 
-          {/* Confirm Password */}
           <PasswordInput
             placeholder="Confirm Password"
             value={confirmPassword}
@@ -127,7 +157,6 @@ export default function Signup() {
             toggle={() => setShowConfirmPassword(!showConfirmPassword)}
           />
 
-          {/* Sign Up Button */}
           <TouchableOpacity
             style={styles.signupBtn}
             onPress={handleSignup}
@@ -206,23 +235,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#F9FAFB",
   },
-
-  header: {
-    marginBottom: 32,
-  },
-
+  header: { marginBottom: 32 },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: COLORS.primaryDark,
     marginBottom: 6,
   },
-
   subtitle: {
     fontSize: 15,
     color: COLORS.muted,
   },
-
   card: {
     backgroundColor: "#fff",
     borderRadius: 20,
@@ -232,7 +255,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -243,13 +265,11 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     gap: 10,
   },
-
   input: {
     flex: 1,
     fontSize: 16,
     color: COLORS.text,
   },
-
   signupBtn: {
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
@@ -257,24 +277,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-
   signupText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
-
   footer: {
     marginTop: 28,
     alignItems: "center",
   },
-
   footerText: {
     fontSize: 14,
     color: COLORS.muted,
   },
-
   login: {
     color: COLORS.primary,
     fontWeight: "600",

@@ -16,16 +16,22 @@ import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 import Toast from "react-native-toast-message";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
+const CITY_STATE_MAP: Record<string, string> = {
+  Perth: "Western Australia",
+  Melbourne: "Victoria",
+};
+
 const SavedAddresses = () => {
   const router = useRouter();
 
-  const { user, addAddress, setCurrentAddress } = useAuthUserStore();
+  const { user, setCurrentAddress } = useAuthUserStore();
   const addresses = user?.address || [];
   const currentAddress = user?.currentAddress;
 
   const [showDelete, setShowDelete] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<string | null>(null);
 
   const [addressForm, setAddressForm] = useState({
     line1: "",
@@ -39,9 +45,47 @@ const SavedAddresses = () => {
   const { mutateAsync: updateProfile, isPending } = useUpdateProfile();
 
   // --------------------
-  // ADD ADDRESS
+  // HELPERS
   // --------------------
-  const handleAddAddress = async () => {
+  const updateField = (key: string, value: string) => {
+    setAddressForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const parseAddressToForm = (address: string) => {
+    const lines = address.split("\n").map((l) => l.trim());
+
+    const line1 = lines[0] || "";
+    const cityStatePin = lines.find((l) => l.includes("-")) || "";
+    const landmarkLine = lines.find((l) => l.startsWith("Landmark:"));
+
+    let city = "",
+      state = "",
+      pincode = "";
+
+    if (cityStatePin) {
+      const [cityState, pin] = cityStatePin.split("-");
+      const parts = cityState.split(",");
+      city = parts[0]?.trim() || "";
+      state = parts[1]?.trim() || "";
+      pincode = pin?.trim() || "";
+    }
+
+    return {
+      line1,
+      line2: lines[1] && !lines[1].includes(",") ? lines[1] : "",
+      city,
+      state,
+      pincode,
+      landmark: landmarkLine
+        ? landmarkLine.replace("Landmark:", "").trim()
+        : "",
+    };
+  };
+
+  // --------------------
+  // ADD / EDIT ADDRESS
+  // --------------------
+  const handleSaveAddress = async () => {
     const { line1, city, state, pincode } = addressForm;
 
     if (!line1 || !city || !state || !pincode || !user?._id) {
@@ -58,22 +102,41 @@ ${addressForm.line2 ? addressForm.line2 + "\n" : ""}${addressForm.city}, ${addre
 ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
 `.trim();
 
+    const updatedAddresses = editingAddress
+      ? addresses.map((a) => (a === editingAddress ? formattedAddress : a))
+      : [...addresses, formattedAddress];
+
+    const nextCurrent =
+      editingAddress === currentAddress
+        ? formattedAddress
+        : currentAddress || formattedAddress;
+
     try {
       await updateProfile({
         id: user._id,
-        address: [...addresses, formattedAddress],
-        currentAddress: formattedAddress,
+        address: updatedAddresses,
+        currentAddress: nextCurrent,
       });
 
-      addAddress(formattedAddress);
+      useAuthUserStore.setState((state) => ({
+        user: state.user
+          ? {
+              ...state.user,
+              address: updatedAddresses,
+              currentAddress: nextCurrent,
+            }
+          : null,
+      }));
 
       Toast.show({
         type: "success",
-        text1: "Address added successfully",
+        text1: editingAddress ? "Address updated" : "Address added",
         position: "top",
         topOffset: 60,
       });
 
+      setModalVisible(false);
+      setEditingAddress(null);
       setAddressForm({
         line1: "",
         line2: "",
@@ -82,8 +145,6 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
         pincode: "",
         landmark: "",
       });
-
-      setModalVisible(false);
     } catch (error: any) {
       Toast.show({
         type: "error",
@@ -92,10 +153,6 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
           "Failed to save address. Please try again.",
       });
     }
-  };
-
-  const updateField = (key: string, value: string) => {
-    setAddressForm((prev) => ({ ...prev, [key]: value }));
   };
 
   // --------------------
@@ -139,14 +196,12 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
       address === currentAddress ? updatedAddresses[0] : currentAddress;
 
     try {
-      // ⏳ wait for backend confirmation
       await updateProfile({
         id: user._id,
         address: updatedAddresses,
         currentAddress: nextCurrent,
       });
 
-      // ✅ update UI AFTER backend success
       useAuthUserStore.setState((state) => ({
         user: state.user
           ? {
@@ -183,11 +238,23 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
 
         <Text style={styles.headerTitle}>Saved Addresses</Text>
 
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          onPress={() => {
+            setEditingAddress(null);
+            setAddressForm({
+              line1: "",
+              line2: "",
+              city: "",
+              state: "",
+              pincode: "",
+              landmark: "",
+            });
+            setModalVisible(true);
+          }}
+        >
           <Feather name="plus" size={22} color="#111827" />
         </TouchableOpacity>
       </View>
-
       {/* EMPTY / LIST */}
       {addresses.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -200,7 +267,18 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
 
           <TouchableOpacity
             style={styles.addBtn}
-            onPress={() => setModalVisible(true)}
+            onPress={() => {
+              setEditingAddress(null);
+              setAddressForm({
+                line1: "",
+                line2: "",
+                city: "",
+                state: "",
+                pincode: "",
+                landmark: "",
+              });
+              setModalVisible(true);
+            }}
           >
             <Text style={styles.addBtnText}>Add New Address</Text>
           </TouchableOpacity>
@@ -223,11 +301,22 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
               >
                 <TouchableOpacity
                   style={{ flex: 1 }}
-                  activeOpacity={0.8}
                   onPress={() => handleSelectAddress(item)}
                 >
                   <Text style={styles.addressText}>{item}</Text>
                   {isCurrent && <Text style={styles.currentTag}>Current</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  hitSlop={10}
+                  onPress={() => {
+                    setEditingAddress(item);
+                    setAddressForm(parseAddressToForm(item));
+                    setModalVisible(true);
+                  }}
+                  style={{ marginRight: 12 }}
+                >
+                  <Feather name="edit-2" size={18} color="#111827" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -245,11 +334,13 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
         />
       )}
 
-      {/* ADD ADDRESS MODAL */}
+      {/* ADD / EDIT MODAL */}
       <Modal transparent visible={modalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Add New Address</Text>
+            <Text style={styles.modalTitle}>
+              {editingAddress ? "Edit Address" : "Add New Address"}
+            </Text>
 
             <TextInput
               placeholder="Address Line 1 *"
@@ -265,18 +356,46 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
               style={styles.input}
             />
 
+            {/* CITY */}
             <TextInput
               placeholder="City *"
               value={addressForm.city}
-              onChangeText={(v) => updateField("city", v)}
+              editable={false}
               style={styles.input}
             />
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+              {Object.keys(CITY_STATE_MAP).map((city) => (
+                <TouchableOpacity
+                  key={city}
+                  onPress={() => {
+                    updateField("city", city);
+                    updateField("state", CITY_STATE_MAP[city]);
+                  }}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor:
+                      addressForm.city === city
+                        ? COLORS.primaryDark
+                        : "#E5E7EB",
+                    backgroundColor:
+                      addressForm.city === city ? "#F3F4F6" : "#FFFFFF",
+                  }}
+                >
+                  <Text>{city}</Text>
+                </TouchableOpacity>
+              ))}
+              <Text style={{ alignSelf: "center", color: "#9CA3AF" }}>More soon...</Text>
+            </View>
 
+            {/* STATE */}
             <TextInput
               placeholder="State *"
               value={addressForm.state}
-              onChangeText={(v) => updateField("state", v)}
-              style={styles.input}
+              editable={false}
+              style={[styles.input, { backgroundColor: "#F9FAFB" }]}
             />
 
             <TextInput
@@ -295,19 +414,16 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
             />
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(false);
+                  setEditingAddress(null);
+                }}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleAddAddress}
-                disabled={
-                  !addressForm.line1 ||
-                  !addressForm.city ||
-                  !addressForm.state ||
-                  !addressForm.pincode
-                }
-              >
+              <TouchableOpacity onPress={handleSaveAddress}>
                 <Text style={styles.saveText}>Save</Text>
               </TouchableOpacity>
             </View>
@@ -315,7 +431,7 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
         </View>
       </Modal>
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* DELETE CONFIRMATION */}
       <DeleteConfirmationModal
         visible={showDelete}
         title="Delete address?"
@@ -326,9 +442,7 @@ ${addressForm.landmark ? "Landmark: " + addressForm.landmark : ""}
           setAddressToDelete(null);
         }}
         onConfirm={() => {
-          if (addressToDelete) {
-            handleDeleteAddress(addressToDelete);
-          }
+          if (addressToDelete) handleDeleteAddress(addressToDelete);
           setShowDelete(false);
           setAddressToDelete(null);
         }}
@@ -345,9 +459,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-    marginTop: 55,
+    marginTop: 50,
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -357,7 +470,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-
   headerTitle: {
     flex: 1,
     textAlign: "center",
@@ -365,14 +477,80 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#111827",
   },
-
+  addressCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: "#E5E7EB",
+  },
+  addressText: {
+    fontSize: 14,
+    color: "#111827",
+  },
+  currentAddressCard: {
+    borderColor: COLORS.primaryDark,
+  },
+  currentTag: {
+    marginTop: 6,
+    fontSize: 12,
+    color: COLORS.primaryDark,
+    fontWeight: "500",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    width: "85%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 60,
+    marginBottom: 14,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 20,
+  },
+  cancelText: {
+    color: "#9CA3AF",
+    fontSize: 16,
+  },
+  saveText: {
+    color: "#111827",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  addBtn: {
+    marginTop: 16,
+    backgroundColor: "#111827",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  addBtnText: { color: "#FFFFFF", fontSize: 14, fontWeight: "500" },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
   },
-
   iconCircle: {
     width: 90,
     height: 90,
@@ -382,102 +560,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-
   sorryText: {
     fontSize: 18,
     fontWeight: "600",
     color: "#9CA3AF",
     marginBottom: 6,
   },
-
-  subText: {
-    fontSize: 14,
-    color: "#9CA3AF",
-    textAlign: "center",
-  },
-
-  addressCard: {
-    backgroundColor: "#FFFFFF",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: "#E5E7EB",
-  },
-
-  addressText: {
-    fontSize: 14,
-    color: "#111827",
-  },
-
-  addBtn: {
-    marginTop: 16,
-    backgroundColor: "#111827",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-
-  addBtnText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  currentAddressCard: {
-    borderColor: COLORS.primaryDark,
-  },
-
-  currentTag: {
-    marginTop: 6,
-    fontSize: 12,
-    color: COLORS.primaryDark,
-    fontWeight: "500",
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalBox: {
-    width: "85%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-  },
-
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
-
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    padding: 10,
-    minHeight: 60,
-    marginBottom: 14,
-  },
-
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 20,
-  },
-
-  cancelText: {
-    color: "#9CA3AF",
-    fontSize: 14,
-  },
-
-  saveText: {
-    color: "#111827",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  subText: { fontSize: 14, color: "#9CA3AF", textAlign: "center" },
 });

@@ -26,6 +26,7 @@ export interface SignupCredentials {
   username: string;
   name: string;
   email: string;
+  contactNumber: string;
   password: string;
 }
 
@@ -91,6 +92,8 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
       Toast.show({
         type: "error",
         text1: error.response?.data?.message || "Something went wrong",
+        position: "top",
+        topOffset: 60,
       });
       set({ user: null, isSigningUp: false });
     }
@@ -126,6 +129,8 @@ export const useAuthUserStore = create<AuthStore>((set) => ({
       Toast.show({
         type: "error",
         text1: error.response?.data?.message || "Login failed",
+        position: "top",
+        topOffset: 60,
       });
       set({ user: null, isLoggingIn: false });
     }

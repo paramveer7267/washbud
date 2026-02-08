@@ -10,12 +10,16 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
+import Toast from "react-native-toast-message";
+import { useDeleteUser } from "@/hooks/useDeleteUser";
 
 const CONFIRM_TEXT = "DELETE";
 
 const DeleteAccount = () => {
   const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { mutateAsync: deleteUser } = useDeleteUser();
 
   const handleDeletePress = () => {
     Alert.alert(
@@ -36,13 +40,22 @@ const DeleteAccount = () => {
     try {
       setLoading(true);
 
-      // 🔥 API CALL GOES HERE
-      // await api.delete("/account");
+      await deleteUser();
 
-      // Reset navigation → Auth
+      Toast.show({
+        type: "success",
+        text1: "Account deleted successfully",
+        position: "top",
+        topOffset: 60,
+      });
+
       router.replace("/(auth)/login");
-    } catch (e) {
-      Alert.alert("Error", "Failed to delete account. Please try again.");
+    } catch (e: any) {
+      Alert.alert(
+        "Error",
+        e?.response?.data?.message ||
+          "Failed to delete account. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -153,7 +166,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     letterSpacing: 2,
-
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 6,

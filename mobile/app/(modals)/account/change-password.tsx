@@ -39,8 +39,8 @@ const ChangePassword = () => {
 
       Alert.alert("Success", "Password changed successfully.");
       router.back();
-    } catch (e) {
-      Alert.alert("Error", "Failed to change password.");
+    } catch (e: any) {
+      Alert.alert("Error", "Failed to change password.", e.message || e);
     } finally {
       setLoading(false);
     }
